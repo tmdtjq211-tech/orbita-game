@@ -1,15 +1,15 @@
 "use client"
 
+import React, { useState, useEffect } from "react"
 import { Button } from "./ui/button"
 import { GameBoard } from "./game-board"
 import { PlayerHand } from "./player-hand"
 import { GameLog } from "./game-log"
 import { ModeSelector } from "./mode-selector"
-
-// lib 폴더는 한 단계 위(..)에 있으므로 아래처럼 수정
 import { type GameState, type LogEntry, type GameMode, PLANET_INFO } from "../lib/game-types"
 import { playCards } from "../lib/game-logic"
 import { database } from "../lib/firebase"
+import { ref, set, onValue, off } from "firebase/database"
 
 export default function OrbitaGame() {
   const [gameMode, setGameMode] = useState<GameMode | null>(null)
@@ -67,7 +67,16 @@ export default function OrbitaGame() {
   }
 
   if (!gameMode) {
-    return <ModeSelector onSelectMode={setGameMode} onJoinOnline={(id, r) => { setRoomId(id); setRole(r); setGameMode("vs-ai"); }} />
+    return (
+      <ModeSelector 
+        onSelectMode={(m) => setGameMode(m)} 
+        onJoinOnline={(id, r) => { 
+          setRoomId(id); 
+          setRole(r); 
+          setGameMode("vs-ai"); 
+        }} 
+      />
+    )
   }
 
   return (
@@ -86,13 +95,21 @@ export default function OrbitaGame() {
             <PlayerHand 
               cards={gameState[myKey].hand} 
               selectedIndices={selectedIndices} 
-              onSelectCard={(i) => setSelectedIndices(p => p.includes(i) ? p.filter(x => x !== i) : [...p, i])}
+              onSelectCard={(i) => {
+                setSelectedIndices(prev => 
+                  prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]
+                )
+              }}
               disabled={gameState.currentTurn !== myKey}
             />
             {gameState.currentTurn === myKey ? (
-              <Button onClick={handlePlayCards} className="w-full mt-4 h-14 text-xl bg-blue-600">카드 내기 ({selectedIndices.length}장)</Button>
+              <Button onClick={handlePlayCards} className="w-full mt-4 h-14 text-xl bg-blue-600">
+                카드 내기 ({selectedIndices.length}장)
+              </Button>
             ) : (
-              <div className="w-full mt-4 p-4 text-center bg-gray-800 rounded-lg animate-pulse text-blue-300">상대방의 턴입니다...</div>
+              <div className="w-full mt-4 p-4 text-center bg-gray-800 rounded-lg animate-pulse text-blue-300">
+                상대방의 턴입니다...
+              </div>
             )}
           </div>
           <GameLog logs={logs} />
