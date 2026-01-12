@@ -84,7 +84,6 @@ export default function OrbitaGame() {
         <div className="text-center bg-blue-900/40 p-3 rounded-lg mb-6 border border-blue-400">
           <p className="text-sm text-blue-200">초대 코드</p>
           <span className="font-bold text-2xl tracking-widest text-white">{roomId}</span>
-          <p className="text-xs mt-1 text-blue-300">상대방에게 이 코드를 알려주세요!</p>
         </div>
       )}
       
@@ -99,11 +98,11 @@ export default function OrbitaGame() {
               disabled={gameState.currentTurn !== myKey}
             />
             {gameState.currentTurn === myKey ? (
-              <Button onClick={handlePlayCards} className="w-full mt-4 h-14 text-xl bg-blue-600 hover:bg-blue-500">
+              <Button onClick={handlePlayCards} className="w-full mt-4 h-14 text-xl bg-blue-600">
                 카드 내기 ({selectedIndices.length}장)
               </Button>
             ) : (
-              <div className="w-full mt-4 p-4 text-center bg-gray-800 rounded-lg animate-pulse text-blue-300 border border-gray-700">
+              <div className="w-full mt-4 p-4 text-center bg-gray-800 rounded-lg animate-pulse text-blue-300">
                 상대방의 턴입니다...
               </div>
             )}
