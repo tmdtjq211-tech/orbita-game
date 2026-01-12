@@ -1,15 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Button } from "./ui/button"
 import { GameBoard } from "./game-board"
 import { PlayerHand } from "./player-hand"
 import { GameLog } from "./game-log"
 import { ModeSelector } from "./mode-selector"
+
+// lib 폴더는 한 단계 위(..)에 있으므로 아래처럼 수정
 import { type GameState, type LogEntry, type GameMode, PLANET_INFO } from "../lib/game-types"
 import { playCards } from "../lib/game-logic"
 import { database } from "../lib/firebase"
-import { ref, set, onValue, off } from "firebase/database"
 
 export default function OrbitaGame() {
   const [gameMode, setGameMode] = useState<GameMode | null>(null)
