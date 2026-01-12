@@ -1,27 +1,29 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import type { GameMode } from "@/lib/game-types"
+// 빌드 에러 방지를 위해 @/ 대신 ./ 상대 경로로 수정했습니다.
+import { Button } from "./ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
+import { Input } from "./ui/input"
+// lib 폴더는 한 단계 위에 있으므로 ../ 를 사용합니다.
+import type { GameMode } from "../lib/game-types"
 import { TutorialModal } from "./tutorial-modal"
 
 interface ModeSelectorProps {
   onSelectMode: (mode: GameMode) => void
-  onJoinOnline: (roomId: string, role: "host" | "guest") => void // 온라인 참가용 프롭스 추가
+  onJoinOnline: (roomId: string, role: "host" | "guest") => void 
 }
 
 export function ModeSelector({ onSelectMode, onJoinOnline }: ModeSelectorProps) {
   const [inputRoomId, setInputRoomId] = useState("")
 
-  // 랜덤 6자리 방 번호 생성 (Host)
+  // 랜덤 6자리 방 번호 생성 및 Host 입장
   const handleCreateRoom = () => {
     const randomCode = Math.floor(100000 + Math.random() * 900000).toString()
     onJoinOnline(randomCode, "host")
   }
 
-  // 입력한 번호로 참가 (Guest)
+  // 입력한 번호로 참가 및 Guest 입장
   const handleJoinRoom = () => {
     if (inputRoomId.length === 6) {
       onJoinOnline(inputRoomId, "guest")
@@ -40,7 +42,7 @@ export function ModeSelector({ onSelectMode, onJoinOnline }: ModeSelectorProps) 
           <CardDescription className="text-slate-400">ORBITA - 우주 전략 카드 게임</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* 기존 오프라인 모드 */}
+          {/* 싱글 플레이 모드 */}
           <div className="space-y-2">
             <p className="text-xs font-semibold text-slate-500 px-1 uppercase tracking-wider">싱글 플레이</p>
             <Button className="w-full h-14 text-lg justify-start" onClick={() => onSelectMode("vs-ai")}>
@@ -58,7 +60,7 @@ export function ModeSelector({ onSelectMode, onJoinOnline }: ModeSelectorProps) 
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-slate-900 px-2 text-slate-500 font-bold">OR</span></div>
           </div>
 
-          {/* 온라인 대전 섹션 */}
+          {/* 온라인 대전 섹션 - 이 부분이 사장님이 원하신 핵심 기능입니다! */}
           <div className="space-y-3 bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
             <p className="text-xs font-semibold text-blue-400 px-1 uppercase tracking-wider">멀티 플레이 (Online)</p>
             
@@ -72,9 +74,9 @@ export function ModeSelector({ onSelectMode, onJoinOnline }: ModeSelectorProps) 
                 value={inputRoomId} 
                 onChange={(e) => setInputRoomId(e.target.value)}
                 maxLength={6}
-                className="bg-slate-950 border-slate-700 text-center font-mono text-lg"
+                className="bg-slate-950 border-slate-700 text-center font-mono text-lg text-white"
               />
-              <Button variant="outline" className="shrink-0 font-bold" onClick={handleJoinRoom}>
+              <Button variant="outline" className="shrink-0 font-bold border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white" onClick={handleJoinRoom}>
                 참가하기
               </Button>
             </div>
@@ -86,12 +88,4 @@ export function ModeSelector({ onSelectMode, onJoinOnline }: ModeSelectorProps) 
                 <Button variant="ghost" className="w-full text-slate-400 hover:text-white">
                   <span className="mr-2">📖</span>
                   게임 규칙 보기
-                </Button>
-              }
-            />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
+                </
