@@ -1,12 +1,10 @@
 "use client"
 
 import { useState } from "react"
-// 빌드 에러 방지를 위해 @/ 대신 ./ 상대 경로로 수정했습니다.
-import { Button } from "./ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
-import { Input } from "./ui/input"
-// lib 폴더는 한 단계 위에 있으므로 ../ 를 사용합니다.
-import type { GameMode } from "../lib/game-types"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import type { GameMode } from "@/lib/game-types"
 import { TutorialModal } from "./tutorial-modal"
 
 interface ModeSelectorProps {
@@ -60,7 +58,7 @@ export function ModeSelector({ onSelectMode, onJoinOnline }: ModeSelectorProps) 
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-slate-900 px-2 text-slate-500 font-bold">OR</span></div>
           </div>
 
-          {/* 온라인 대전 섹션 - 이 부분이 사장님이 원하신 핵심 기능입니다! */}
+          {/* 온라인 대전 섹션 */}
           <div className="space-y-3 bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
             <p className="text-xs font-semibold text-blue-400 px-1 uppercase tracking-wider">멀티 플레이 (Online)</p>
             
@@ -88,4 +86,12 @@ export function ModeSelector({ onSelectMode, onJoinOnline }: ModeSelectorProps) 
                 <Button variant="ghost" className="w-full text-slate-400 hover:text-white">
                   <span className="mr-2">📖</span>
                   게임 규칙 보기
-                </
+                </Button>
+              }
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
