@@ -11,6 +11,7 @@ import { playCards } from "../lib/game-logic"
 import { database } from "../lib/firebase"
 import { ref, set, onValue, off } from "firebase/database"
 
+// 반드시 이 이름이어야 app/page.tsx와 연결됩니다.
 export default function OrbitaGame() {
   const [gameMode, setGameMode] = useState<GameMode | null>(null)
   const [roomId, setRoomId] = useState<string | null>(null)
@@ -67,16 +68,7 @@ export default function OrbitaGame() {
   }
 
   if (!gameMode) {
-    return (
-      <ModeSelector 
-        onSelectMode={(m) => setGameMode(m)} 
-        onJoinOnline={(id, r) => { 
-          setRoomId(id); 
-          setRole(r); 
-          setGameMode("vs-ai"); 
-        }} 
-      />
-    )
+    return <ModeSelector onSelectMode={setGameMode} onJoinOnline={(id, r) => { setRoomId(id); setRole(r); setGameMode("vs-ai"); }} />
   }
 
   return (
@@ -95,11 +87,7 @@ export default function OrbitaGame() {
             <PlayerHand 
               cards={gameState[myKey].hand} 
               selectedIndices={selectedIndices} 
-              onSelectCard={(i) => {
-                setSelectedIndices(prev => 
-                  prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]
-                )
-              }}
+              onSelectCard={(i) => setSelectedIndices(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])}
               disabled={gameState.currentTurn !== myKey}
             />
             {gameState.currentTurn === myKey ? (
@@ -107,7 +95,7 @@ export default function OrbitaGame() {
                 카드 내기 ({selectedIndices.length}장)
               </Button>
             ) : (
-              <div className="w-full mt-4 p-4 text-center bg-gray-800 rounded-lg animate-pulse text-blue-300">
+              <div className="w-full mt-4 p-4 text-center bg-gray-800 rounded-lg animate-pulse">
                 상대방의 턴입니다...
               </div>
             )}
