@@ -1,13 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-// UI 컴포넌트 경로도 @ 대신 상대 경로로 수정했습니다
+// 경로 에러를 피하기 위해 상대 경로(./)로 모두 수정했습니다.
 import { Button } from "./ui/button"
 import { GameBoard } from "./game-board"
 import { PlayerHand } from "./player-hand"
 import { GameLog } from "./game-log"
 import { ModeSelector } from "./mode-selector"
-// lib 폴더 경로 수정
 import { type GameState, type LogEntry, type GameMode, PLANET_INFO } from "../lib/game-types"
 import { playCards } from "../lib/game-logic"
 import { database } from "../lib/firebase"
@@ -25,6 +24,7 @@ export default function OrbitaGame() {
   const myKey = role === "host" ? "player" : "ai"
   const opponentKey = role === "host" ? "ai" : "player"
 
+  // 실시간 데이터 감시 (Firebase)
   useEffect(() => {
     if (!roomId) return
     const gameRef = ref(database, `rooms/${roomId}/gameState`)
@@ -38,6 +38,7 @@ export default function OrbitaGame() {
     return () => off(gameRef)
   }, [roomId])
 
+  // 카드 내기 및 온라인 전송
   const handlePlayCards = async () => {
     if (!gameState || !roomId || selectedIndices.length === 0) return
     if (gameState.currentTurn !== myKey) return 
@@ -52,11 +53,11 @@ export default function OrbitaGame() {
       planet: playedCards[0].planet, 
       cardCount: playedCards.length, 
       position: newPosition,
-      message: `${role === "host" ? "호스트" : "게스트"}가 ${PLANET_INFO[playedCards[0].planet].name} ${playedCards.length}장을 냈습니다.`,
+      message: `${role === "host" ? "방장" : "참여자"}가 ${PLANET_INFO[playedCards[0].planet].name} ${playedCards.length}장을 냈습니다.`,
       timestamp: new Date()
     }
 
-    const updates: any = {
+    const updates = {
       state: {
         ...newState,
         currentTurn: opponentKey,
@@ -70,6 +71,7 @@ export default function OrbitaGame() {
     setSelectedIndices([])
   }
 
+  // 초기 화면 (온라인 모드 선택창)
   if (!gameMode) {
     return (
       <ModeSelector 
@@ -77,18 +79,19 @@ export default function OrbitaGame() {
         onJoinOnline={(id, r) => { 
           setRoomId(id); 
           setRole(r); 
-          setGameMode("vs-ai"); 
+          setGameMode("vs-ai"); // 온라인 대전 시작
         }} 
       />
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto p-4 text-white">
       {roomId && (
-        <div className="text-center bg-blue-900/30 p-2 rounded mb-4 border border-blue-500/50">
-          방 코드: <span className="font-bold text-blue-400 text-xl">{roomId}</span> 
-          <span className="ml-2 text-sm text-gray-400">({role === "host" ? "방장" : "참여자"})</span>
+        <div className="text-center bg-blue-900/40 p-3 rounded-lg mb-6 border border-blue-400">
+          <p className="text-sm text-blue-200">초대 코드</p>
+          <span className="font-bold text-2xl tracking-widest text-white">{roomId}</span>
+          <p className="text-xs mt-1 text-blue-300">상대방에게 이 코드를 알려주세요!</p>
         </div>
       )}
       
@@ -102,14 +105,13 @@ export default function OrbitaGame() {
               onSelectCard={(i) => setSelectedIndices(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])}
               disabled={gameState.currentTurn !== myKey}
             />
-            {gameState.currentTurn === myKey && (
-              <Button onClick={handlePlayCards} className="w-full mt-4 h-12 text-lg">
+            {gameState.currentTurn === myKey ? (
+              <Button onClick={handlePlayCards} className="w-full mt-4 h-14 text-xl bg-blue-600 hover:bg-blue-500">
                 카드 내기 ({selectedIndices.length}장)
               </Button>
-            )}
-            {gameState.currentTurn !== myKey && (
-              <div className="text-center mt-4 p-2 bg-gray-800 rounded animate-pulse text-blue-300">
-                상대방이 카드를 내길 기다리는 중...
+            ) : (
+              <div className="w-full mt-4 p-4 text-center bg-gray-800 rounded-lg animate-pulse text-blue-300 border border-gray-700">
+                상대방의 턴입니다...
               </div>
             )}
           </div>
