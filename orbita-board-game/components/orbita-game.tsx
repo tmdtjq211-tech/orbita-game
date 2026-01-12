@@ -1,14 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+// UI 컴포넌트 경로도 @ 대신 상대 경로로 수정했습니다
+import { Button } from "./ui/button"
 import { GameBoard } from "./game-board"
 import { PlayerHand } from "./player-hand"
 import { GameLog } from "./game-log"
 import { ModeSelector } from "./mode-selector"
-// 경로 에러 방지를 위해 @ 대신 .. 상대경로로 수정했습니다
+// lib 폴더 경로 수정
 import { type GameState, type LogEntry, type GameMode, PLANET_INFO } from "../lib/game-types"
-import { playCards, determineRoundWinner } from "../lib/game-logic"
+import { playCards } from "../lib/game-logic"
 import { database } from "../lib/firebase"
 import { ref, set, onValue, off } from "firebase/database"
 
@@ -21,11 +22,9 @@ export default function OrbitaGame() {
   const [roundCards, setRoundCards] = useState<{player: any, ai: any}>({ player: null, ai: null })
   const [logs, setLogs] = useState<LogEntry[]>([])
 
-  // 내 역할에 따른 데이터 매핑 (Host=player, Guest=ai)
   const myKey = role === "host" ? "player" : "ai"
   const opponentKey = role === "host" ? "ai" : "player"
 
-  // 1. 온라인 동기화 (Firebase 리스너)
   useEffect(() => {
     if (!roomId) return
     const gameRef = ref(database, `rooms/${roomId}/gameState`)
@@ -39,7 +38,6 @@ export default function OrbitaGame() {
     return () => off(gameRef)
   }, [roomId])
 
-  // 2. 카드 내기 로직
   const handlePlayCards = async () => {
     if (!gameState || !roomId || selectedIndices.length === 0) return
     if (gameState.currentTurn !== myKey) return 
@@ -75,4 +73,49 @@ export default function OrbitaGame() {
   if (!gameMode) {
     return (
       <ModeSelector 
-        onSelectMode={(
+        onSelectMode={(m) => setGameMode(m)} 
+        onJoinOnline={(id, r) => { 
+          setRoomId(id); 
+          setRole(r); 
+          setGameMode("vs-ai"); 
+        }} 
+      />
+    )
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto p-4">
+      {roomId && (
+        <div className="text-center bg-blue-900/30 p-2 rounded mb-4 border border-blue-500/50">
+          방 코드: <span className="font-bold text-blue-400 text-xl">{roomId}</span> 
+          <span className="ml-2 text-sm text-gray-400">({role === "host" ? "방장" : "참여자"})</span>
+        </div>
+      )}
+      
+      {gameState && (
+        <>
+          <GameBoard tokens={gameState.tokens} />
+          <div className="mt-8">
+            <PlayerHand 
+              cards={gameState[myKey].hand} 
+              selectedIndices={selectedIndices} 
+              onSelectCard={(i) => setSelectedIndices(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])}
+              disabled={gameState.currentTurn !== myKey}
+            />
+            {gameState.currentTurn === myKey && (
+              <Button onClick={handlePlayCards} className="w-full mt-4 h-12 text-lg">
+                카드 내기 ({selectedIndices.length}장)
+              </Button>
+            )}
+            {gameState.currentTurn !== myKey && (
+              <div className="text-center mt-4 p-2 bg-gray-800 rounded animate-pulse text-blue-300">
+                상대방이 카드를 내길 기다리는 중...
+              </div>
+            )}
+          </div>
+        </>
+      )}
+      <GameLog logs={logs} />
+    </div>
+  )
+}
