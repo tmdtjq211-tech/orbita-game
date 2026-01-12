@@ -27,9 +27,10 @@ export default function OrbitaGame() {
     const gameRef = ref(database, `rooms/${roomId}/gameState`)
     const unsubscribe = onValue(gameRef, (snapshot) => {
       const data = snapshot.val()
-      if (!data) return
-      setGameState(data.state)
-      setLogs(data.logs || [])
+      if (data && data.state) {
+        setGameState(data.state)
+        setLogs(data.logs || [])
+      }
     })
     return () => off(gameRef)
   }, [roomId])
@@ -66,16 +67,7 @@ export default function OrbitaGame() {
   }
 
   if (!gameMode) {
-    return (
-      <ModeSelector 
-        onSelectMode={(m) => setGameMode(m)} 
-        onJoinOnline={(id, r) => { 
-          setRoomId(id); 
-          setRole(r); 
-          setGameMode("vs-ai"); 
-        }} 
-      />
-    )
+    return <ModeSelector onSelectMode={setGameMode} onJoinOnline={(id, r) => { setRoomId(id); setRole(r); setGameMode("vs-ai"); }} />
   }
 
   return (
@@ -87,29 +79,27 @@ export default function OrbitaGame() {
         </div>
       )}
       
-      {gameState && (
-        <>
+      {gameState ? (
+        <div className="space-y-8">
           <GameBoard tokens={gameState.tokens} />
           <div className="mt-8">
             <PlayerHand 
               cards={gameState[myKey].hand} 
               selectedIndices={selectedIndices} 
-              onSelectCard={(i) => setSelectedIndices(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])}
+              onSelectCard={(i) => setSelectedIndices(p => p.includes(i) ? p.filter(x => x !== i) : [...p, i])}
               disabled={gameState.currentTurn !== myKey}
             />
             {gameState.currentTurn === myKey ? (
-              <Button onClick={handlePlayCards} className="w-full mt-4 h-14 text-xl bg-blue-600">
-                카드 내기 ({selectedIndices.length}장)
-              </Button>
+              <Button onClick={handlePlayCards} className="w-full mt-4 h-14 text-xl bg-blue-600">카드 내기 ({selectedIndices.length}장)</Button>
             ) : (
-              <div className="w-full mt-4 p-4 text-center bg-gray-800 rounded-lg animate-pulse text-blue-300">
-                상대방의 턴입니다...
-              </div>
+              <div className="w-full mt-4 p-4 text-center bg-gray-800 rounded-lg animate-pulse text-blue-300">상대방의 턴입니다...</div>
             )}
           </div>
-        </>
+          <GameLog logs={logs} />
+        </div>
+      ) : (
+        <div className="text-center p-10">데이터를 기다리는 중...</div>
       )}
-      <GameLog logs={logs} />
     </div>
   )
 }
