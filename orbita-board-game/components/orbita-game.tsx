@@ -1,14 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-// UI 부품들을 가져올 때 @/ 대신 ./ (현재 폴더)를 사용하도록 수정했습니다.
 import { Button } from "./ui/button"
 import { GameBoard } from "./game-board"
 import { PlayerHand } from "./player-hand"
 import { GameLog } from "./game-log"
 import { ModeSelector } from "./mode-selector"
-
-// lib 폴더는 한 단계 위에 있으므로 ../ 를 사용합니다.
 import { type GameState, type LogEntry, type GameMode, PLANET_INFO } from "../lib/game-types"
 import { playCards } from "../lib/game-logic"
 import { database } from "../lib/firebase"
@@ -20,13 +17,11 @@ export default function OrbitaGame() {
   const [role, setRole] = useState<"host" | "guest" | "spectator">("host")
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [selectedIndices, setSelectedIndices] = useState<number[]>([])
-  const [roundCards, setRoundCards] = useState<{player: any, ai: any}>({ player: null, ai: null })
   const [logs, setLogs] = useState<LogEntry[]>([])
 
   const myKey = role === "host" ? "player" : "ai"
   const opponentKey = role === "host" ? "ai" : "player"
 
-  // 실시간 데이터 감시 (Firebase 연동)
   useEffect(() => {
     if (!roomId) return
     const gameRef = ref(database, `rooms/${roomId}/gameState`)
@@ -34,13 +29,11 @@ export default function OrbitaGame() {
       const data = snapshot.val()
       if (!data) return
       setGameState(data.state)
-      setRoundCards(data.roundCards || { player: null, ai: null })
       setLogs(data.logs || [])
     })
     return () => off(gameRef)
   }, [roomId])
 
-  // 카드 내기 및 Firebase 전송 로직
   const handlePlayCards = async () => {
     if (!gameState || !roomId || selectedIndices.length === 0) return
     if (gameState.currentTurn !== myKey) return 
@@ -65,7 +58,6 @@ export default function OrbitaGame() {
         currentTurn: opponentKey,
         phase: newState.isFirstPlayer === myKey ? (role === "host" ? "ai-turn" : "player-turn") : "round-end"
       },
-      [`roundCards/${myKey}`]: { cards: playedCards, position: newPosition },
       logs: [...logs, newLog]
     }
 
@@ -73,7 +65,6 @@ export default function OrbitaGame() {
     setSelectedIndices([])
   }
 
-  // 초기 화면 (온라인 모드 선택)
   if (!gameMode) {
     return (
       <ModeSelector 
@@ -104,4 +95,22 @@ export default function OrbitaGame() {
             <PlayerHand 
               cards={gameState[myKey].hand} 
               selectedIndices={selectedIndices} 
-              onSelectCard={(
+              onSelectCard={(i) => setSelectedIndices(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])}
+              disabled={gameState.currentTurn !== myKey}
+            />
+            {gameState.currentTurn === myKey ? (
+              <Button onClick={handlePlayCards} className="w-full mt-4 h-14 text-xl bg-blue-600 hover:bg-blue-500">
+                카드 내기 ({selectedIndices.length}장)
+              </Button>
+            ) : (
+              <div className="w-full mt-4 p-4 text-center bg-gray-800 rounded-lg animate-pulse text-blue-300 border border-gray-700">
+                상대방의 턴입니다...
+              </div>
+            )}
+          </div>
+        </>
+      )}
+      <GameLog logs={logs} />
+    </div>
+  )
+}
